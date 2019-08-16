@@ -162,7 +162,7 @@ def generate_test_results_data(test_id,
         frequency=data_resolution).id
     if not jmeter_results_file_fields:
         jmeter_results_file_fields = [
-            'response_time', 'url', 'responseCode', 'success', 'threadName',
+            'elapsed', 'url', 'responseCode', 'success', 'threadName',
             'failureMessage', 'grpThreads', 'allThreads'
         ]
     if not monitoring_results_file_fields:
@@ -193,7 +193,7 @@ def generate_test_results_data(test_id,
 
         df.columns = jmeter_results_file_fields
         df.index = pd.to_datetime(dateconv((df.index.values / 1000)))
-        num_lines = df['response_time'].count()
+        num_lines = df['elapsed'].count()
         logger.debug('Number of lines in file: {}'.format(num_lines))
         unique_urls = df['url'].unique()
         for url in unique_urls:
@@ -215,8 +215,8 @@ def generate_test_results_data(test_id,
                 url_data = pd.DataFrame()
                 df_url_gr_by_ts = df_url.groupby(
                     pd.Grouper(freq=data_resolution))
-                url_data['avg'] = df_url_gr_by_ts.response_time.mean()
-                url_data['median'] = df_url_gr_by_ts.response_time.median()
+                url_data['avg'] = df_url_gr_by_ts.elapsed.mean()
+                url_data['median'] = df_url_gr_by_ts.elapsed.median()
                 url_data['count'] = df_url_gr_by_ts.success.count()
                 df_url_gr_by_ts_only_errors = df_url[(
                     df_url.success == False
@@ -247,12 +247,12 @@ def generate_test_results_data(test_id,
                 if not TestActionAggregateData.objects.filter(
                         action_id=action_id, test_id=test_id).exists():
                     url_agg_data = dict(
-                        json.loads(df_url['response_time'].describe()
+                        json.loads(df_url['elapsed'].describe()
                                    .to_json()))
-                    url_agg_data['99%'] = float(df_url['response_time'].quantile(.99))
-                    url_agg_data['90%'] = float(df_url['response_time'].quantile(.90))
+                    url_agg_data['99%'] = float(df_url['elapsed'].quantile(.99))
+                    url_agg_data['90%'] = float(df_url['elapsed'].quantile(.90))
                     url_agg_data['weight'] = float(
-                        df_url['response_time'].sum())
+                        df_url['elapsed'].sum())
                     url_agg_data['errors'] = float(df_url[(
                         df_url['success'] == False)]['success'].count())
                     print(url_agg_data)
@@ -267,9 +267,9 @@ def generate_test_results_data(test_id,
                 data_resolution_id=data_resolution_id).exists():
             test_overall_data = pd.DataFrame()
             df_gr_by_ts = df.groupby(pd.TimeGrouper(freq=data_resolution))
-            test_overall_data['avg'] = df_gr_by_ts.response_time.mean()
-            test_overall_data['median'] = df_gr_by_ts.response_time.median()
-            test_overall_data['count'] = df_gr_by_ts.response_time.count()
+            test_overall_data['avg'] = df_gr_by_ts.elapsed.mean()
+            test_overall_data['median'] = df_gr_by_ts.elapsed.median()
+            test_overall_data['count'] = df_gr_by_ts.elapsed.count()
             test_overall_data['test_id'] = test_id
             output_json = json.loads(
                 test_overall_data.to_json(orient='index',
@@ -398,7 +398,7 @@ def daemon_generate_data(test,
     test_id = test.id
     if not jmeter_results_file_fields:
         jmeter_results_file_fields = [
-            'timestamp', 'response_time', 'url', 'responseCode', 'success', 'threadName',
+            'timestamp', 'elapsed', 'url', 'responseCode', 'success', 'threadName',
             'failureMessage', 'grpThreads', 'allThreads'
         ]
     if not monitoring_results_file_fields:
@@ -507,8 +507,8 @@ def parse_csv_data(data_file, csv_file_fields, test, data_resolution):
         url_data = pd.DataFrame()
         df_url_gr_by_ts = df_url.groupby(
             pd.Grouper(freq=data_resolution))
-        url_data['avg'] = df_url_gr_by_ts.response_time.mean()
-        url_data['median'] = df_url_gr_by_ts.response_time.median()
+        url_data['avg'] = df_url_gr_by_ts.elapsed.mean()
+        url_data['median'] = df_url_gr_by_ts.elapsed.median()
         url_data['count'] = df_url_gr_by_ts.success.count()
         df_url_gr_by_ts_only_errors = df_url[(
             df_url.success == False
@@ -540,11 +540,11 @@ def parse_csv_data(data_file, csv_file_fields, test, data_resolution):
         logger.info('[DAEMON] Check aggregate data: {}'.format(url))
         url_agg_data = dict(
         json.loads(
-            df_url['response_time'].describe().to_json()))
-        url_agg_data['99%'] = df_url['response_time'].quantile(.99)
-        url_agg_data['90%'] = df_url['response_time'].quantile(.90)
+            df_url['elapsed'].describe().to_json()))
+        url_agg_data['99%'] = df_url['elapsed'].quantile(.99)
+        url_agg_data['90%'] = df_url['elapsed'].quantile(.90)
         url_agg_data['weight'] = float(
-            df_url['response_time'].sum())
+            df_url['elapsed'].sum())
         url_agg_data['errors'] = float(df_url[(
             df_url['success'] == False)]['success'].count())
         if not TestActionAggregateData.objects.filter(action_id=action_id,
@@ -600,9 +600,9 @@ def parse_csv_data(data_file, csv_file_fields, test, data_resolution):
     logger.info("[DAEMON] Adding test overall data.".format(url))
     test_overall_data = pd.DataFrame()
     df_gr_by_ts = df.groupby(pd.Grouper(freq=data_resolution))
-    test_overall_data['avg'] = df_gr_by_ts.response_time.mean()
-    test_overall_data['median'] = df_gr_by_ts.response_time.median()
-    test_overall_data['count'] = df_gr_by_ts.response_time.count()
+    test_overall_data['avg'] = df_gr_by_ts.elapsed.mean()
+    test_overall_data['median'] = df_gr_by_ts.elapsed.median()
+    test_overall_data['count'] = df_gr_by_ts.elapsed.count()
     test_overall_data['test_id'] = test_id
     output_json = json.loads(
         test_overall_data.to_json(orient='index',
