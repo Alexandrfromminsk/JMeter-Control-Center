@@ -398,8 +398,7 @@ def daemon_generate_data(test,
     test_id = test.id
     if not jmeter_results_file_fields:
         jmeter_results_file_fields = [
-            'timestamp', 'elapsed', 'url', 'responseCode', 'success', 'threadName',
-            'failureMessage', 'grpThreads', 'allThreads'
+            'timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect'.split(',')
         ]
     if not monitoring_results_file_fields:
         monitoring_results_file_fields = [
